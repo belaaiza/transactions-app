@@ -45,4 +45,29 @@ class TransactionAPITests(TestCase):
 
         res = self.client.post(TRANSACTION_URL, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_multiple_transactions(self):
+        payload = [{
+            'reference': '000053',
+            'date': '2020-01-03',
+            'amount': '-51.13',
+            'type': 'outflow',
+            'category': 'groceries',
+            'user_email': 'janedoe@email.com'
+        },
+        {
+            'reference': '000054',
+            'date': '2020-01-03',
+            'amount': '-51.13',
+            'type': 'outflow',
+            'category': 'groceries',
+            'user_email': 'janedoe@email.com'
+        }
+        ]
+
+        res = self.client.post(TRANSACTION_URL, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+       
+        transactions = Transaction.objects.all()
+        self.assertEqual(len(transactions), len(payload))
         
