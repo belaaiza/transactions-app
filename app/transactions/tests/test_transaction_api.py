@@ -43,7 +43,7 @@ class TransactionAPITests(TestCase):
             'user_email': 'janedoe@email.com'
         }
 
-        res = self.client.post(TRANSACTION_URL, payload, format='json')
+        res = self.client.post(TRANSACTION_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_multiple_transactions(self):
@@ -70,4 +70,30 @@ class TransactionAPITests(TestCase):
        
         transactions = Transaction.objects.all()
         self.assertEqual(len(transactions), len(payload))
+
+    def test_negative_amount_with_inflow_type(self):
+        payload = {
+            'reference': '000052',
+            'date': '2020-01-03',
+            'amount': '-10.13',
+            'type': 'inflow',
+            'category': 'groceries',
+            'user_email': 'janedoe@email.com'
+        }
+
+        res = self.client.post(TRANSACTION_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_positive_amount_with_outflow_type(self):
+        payload = {
+            'reference': '000052',
+            'date': '2020-01-03',
+            'amount': '10.13',
+            'type': 'outflow',
+            'category': 'groceries',
+            'user_email': 'janedoe@email.com'
+        }
+
+        res = self.client.post(TRANSACTION_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         
