@@ -70,3 +70,12 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         if type == 'outflow' and amount > 0:
             raise serializers.ValidationError('Amount should be a negative decimal for an outflow transaction.')
+
+class AmountField(serializers.DecimalField):
+    def to_representation(self, value):
+        return f'{value/100:.2f}'
+
+class TransactionSummarySerializer(serializers.Serializer):
+    user_email = serializers.EmailField()
+    total_inflow = AmountField(max_digits=10, decimal_places=2)
+    total_outflow = AmountField(max_digits=10, decimal_places=2)
