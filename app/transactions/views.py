@@ -1,3 +1,6 @@
+"""
+Views for transactions API.
+"""
 from transactions.serializers import TransactionBulkCreateSerializer
 from transactions.serializers import TransactionGroupedByTypeSerializer
 from transactions.serializers import TransactionSerializer
@@ -8,6 +11,7 @@ from rest_framework.decorators import action
 from django.db.models import Sum, Q
 
 class TransactionViewSet(viewsets.ModelViewSet):
+    """View for transactions actions."""
     serializer_class = TransactionSerializer
     queryset = Transaction.objects.all()
 

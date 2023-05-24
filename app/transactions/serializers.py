@@ -7,7 +7,17 @@ from rest_framework import serializers
 from django.db.utils import IntegrityError
 
 class TransactionBulkCreateSerializer(serializers.ListSerializer):
+    """Serializer for multiple transactions creation."""
+
     def create(self, validated_data):
+        """
+        Create multiple transactions at once using bulk_create.
+
+        Raises
+        ------
+        IntegrityError
+            If the data has transactions with same reference.
+        """
         try:
             data = [Transaction(**item) for item in validated_data]  
             return Transaction.objects.bulk_create(data)
@@ -15,6 +25,7 @@ class TransactionBulkCreateSerializer(serializers.ListSerializer):
             raise serializers.ValidationError('Reference must be unique.')
 
     def validate(self, data):
+        """Validate each transaction in a multiple transaction creation."""
         for item in data:
             self.child.initial_data = item
             self.child.is_valid(raise_exception=True)
@@ -71,7 +82,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         Parameters
         ----------
         type : string
-            The transaction type (inflow or outflow).
+            The transaction type. Must be either 'inflow' or 'outflow'.
 
         amount : int
             The transaction amount in cents.
@@ -88,7 +99,8 @@ class TransactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Amount should be a negative decimal for an outflow transaction.')
 
 class AmountField(serializers.DecimalField):
-    def to_representation(self, value):
+    def to_representation(self, value: int) -> str:
+        """Convert a value in cents to its string representation in the format '00.00'."""
         return f'{value/100:.2f}'
 
 class TransactionGroupedByTypeSerializer(serializers.Serializer):
