@@ -75,7 +75,9 @@ class AmountField(serializers.DecimalField):
     def to_representation(self, value):
         return f'{value/100:.2f}'
 
-class TransactionSummarySerializer(serializers.Serializer):
+class TransactionGroupedByTypeSerializer(serializers.Serializer):
+    """Serializer for the transactions list grouped by type."""
+    
     user_email = serializers.EmailField()
     total_inflow = AmountField(max_digits=10, decimal_places=2)
     total_outflow = AmountField(max_digits=10, decimal_places=2)

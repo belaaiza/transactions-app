@@ -88,3 +88,25 @@ class TransactionAPITests(APITestCase):
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, expected_data)
+
+    def test_list_user_transactions_grouped_by_category(self):
+        for data in test_payload:
+            self.factory.create(**data)
+
+        url = reverse('transaction:transaction-summary', kwargs={ 'user_email': 'janedoe@email.com' })
+        res = self.client.get(url)
+
+        expected_data = {
+            'inflow': {
+                'salary': '2500.72',
+                'savings': '150.72'
+            },
+            'outflow': {
+                'groceries': '-51.13',
+                'rent': '-560.00',
+                'transfer': '-150.72'
+            }
+        }
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, expected_data)

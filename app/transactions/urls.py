@@ -10,5 +10,5 @@ router.register('transactions', views.TransactionViewSet)
 app_name = 'transaction'
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
 ]
