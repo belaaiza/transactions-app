@@ -4,6 +4,21 @@ Serializers for transactions API.
 import decimal
 from transactions.models import Transaction
 from rest_framework import serializers
+from django.db.utils import IntegrityError
+
+class TransactionBulkCreateSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        try:
+            data = [Transaction(**item) for item in validated_data]  
+            return Transaction.objects.bulk_create(data)
+        except IntegrityError:
+            raise serializers.ValidationError('Reference must be unique.')
+
+    def validate(self, data):
+        for item in data:
+            self.child.initial_data = item
+            self.child.is_valid(raise_exception=True)
+        return data
 
 class TransactionSerializer(serializers.ModelSerializer):
     """Serializer for transactions."""
@@ -12,6 +27,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['user_email', 'reference', 'date', 'amount', 'type', 'category']
+        list_serializer_class = TransactionBulkCreateSerializer
 
     def validate_amount(self, value: str) -> int:
         """

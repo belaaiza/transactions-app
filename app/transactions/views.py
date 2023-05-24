@@ -1,3 +1,4 @@
+from transactions.serializers import TransactionBulkCreateSerializer
 from transactions.serializers import TransactionGroupedByTypeSerializer
 from transactions.serializers import TransactionSerializer
 from transactions.models import Transaction
@@ -16,13 +17,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             kwargs['many'] = True
     
         return super(TransactionViewSet, self).get_serializer(*args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=False, url_path=r'(?P<user_email>[^/]+)/summary')
     def summary(self, request, user_email: str = None):

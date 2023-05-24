@@ -36,12 +36,31 @@ class TransactionAPITests(APITestCase):
         self.assertEqual(transaction.category, self.basic_payload['category'])
         self.assertEqual(transaction.user_email, self.basic_payload['user_email'])
 
-    def test_invalid_amount(self):
-        self.basic_payload['amount'] = '-a.13'
+    def test_create_duplicated_transaction(self):
+        self.factory.create(reference='000001')
 
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res.data['reference'][0]), 'transaction with this reference already exists.')
+
+    def test_create_multiple_invalid_transactions(self):
+        self.basic_payload['type'] = 'inflow'
+        self.basic_payload['amount'] = '-51.13'
+
+        another_transaction = dict(self.basic_payload)
+        another_transaction['reference'] = '000002'
+        another_transaction['type'] = 'inflow'
+        another_transaction['amount'] = '-51.13'
+
+        payload = [
+            self.basic_payload,
+            another_transaction
+        ]
+
+        res = self.client.post(TRANSACTION_URL, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res.data['amount'][0]), 'Amount should be a positive decimal for an inflow transaction.')
 
     def test_create_multiple_transactions(self):
         another_transaction = dict(self.basic_payload)
@@ -58,12 +77,21 @@ class TransactionAPITests(APITestCase):
         transactions = Transaction.objects.all()
         self.assertEqual(len(transactions), len(payload))
 
+    def test_invalid_amount(self):
+        self.basic_payload['amount'] = '-a.13'
+
+        res = self.client.post(TRANSACTION_URL, self.basic_payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res.data['amount'][0]), 'Invalid amount format.')
+
     def test_negative_amount_with_inflow_type(self):
         self.basic_payload['type'] = 'inflow'
         self.basic_payload['amount'] = '-51.13'
 
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res.data['amount'][0]), 'Amount should be a positive decimal for an inflow transaction.')
 
     def test_positive_amount_with_outflow_type(self):
         self.basic_payload['type'] = 'outflow'
@@ -71,6 +99,7 @@ class TransactionAPITests(APITestCase):
 
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res.data['amount'][0]), 'Amount should be a negative decimal for an outflow transaction.')
 
     def test_list_transactions_grouped_by_type_and_user(self):
         for data in test_payload:
