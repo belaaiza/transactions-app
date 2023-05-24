@@ -6,6 +6,7 @@ from transactions.models import Transaction
 from rest_framework import serializers
 from django.db.utils import IntegrityError
 
+
 class TransactionBulkCreateSerializer(serializers.ListSerializer):
     """Serializer for multiple transactions creation."""
 
@@ -19,7 +20,7 @@ class TransactionBulkCreateSerializer(serializers.ListSerializer):
             If the data has transactions with same reference.
         """
         try:
-            data = [Transaction(**item) for item in validated_data]  
+            data = [Transaction(**item) for item in validated_data]
             return Transaction.objects.bulk_create(data)
         except IntegrityError:
             raise serializers.ValidationError('Reference must be unique.')
@@ -30,6 +31,7 @@ class TransactionBulkCreateSerializer(serializers.ListSerializer):
             self.child.initial_data = item
             self.child.is_valid(raise_exception=True)
         return data
+
 
 class TransactionSerializer(serializers.ModelSerializer):
     """Serializer for transactions."""
@@ -66,7 +68,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         data = self.get_initial()
         self.check_amount_according_type(data.get('type'), amount)
-       
+
         return amount
 
     def amount_to_integer(self, amount: str) -> int:
@@ -98,14 +100,16 @@ class TransactionSerializer(serializers.ModelSerializer):
         if type == 'outflow' and amount > 0:
             raise serializers.ValidationError('Amount should be a negative decimal for an outflow transaction.')
 
+
 class AmountField(serializers.DecimalField):
     def to_representation(self, value: int) -> str:
         """Convert a value in cents to its string representation in the format '00.00'."""
         return f'{value/100:.2f}'
 
+
 class TransactionGroupedByTypeSerializer(serializers.Serializer):
     """Serializer for the transactions list grouped by type."""
-    
+
     user_email = serializers.EmailField()
     total_inflow = AmountField(max_digits=10, decimal_places=2)
     total_outflow = AmountField(max_digits=10, decimal_places=2)

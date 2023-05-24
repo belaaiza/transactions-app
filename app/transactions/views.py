@@ -1,7 +1,6 @@
 """
 Views for transactions API.
 """
-from transactions.serializers import TransactionBulkCreateSerializer
 from transactions.serializers import TransactionGroupedByTypeSerializer
 from transactions.serializers import TransactionSerializer
 from transactions.models import Transaction
@@ -10,16 +9,17 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Sum, Q
 
+
 class TransactionViewSet(viewsets.ModelViewSet):
     """View for transactions actions."""
     serializer_class = TransactionSerializer
     queryset = Transaction.objects.all()
 
-    def get_serializer(self, *args, **kwargs):  
+    def get_serializer(self, *args, **kwargs):
         """Set `many` kwargs as True when creating multiple transactions at once"""
         if isinstance(kwargs.get('data', {}), list):
             kwargs['many'] = True
-    
+
         return super(TransactionViewSet, self).get_serializer(*args, **kwargs)
 
     @action(detail=False, url_path=r'(?P<user_email>[^/]+)/summary')
@@ -68,7 +68,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Response(grouped_by_type_serializer.data)
         else:
             return super(TransactionViewSet, self).list(request, *args, **kwargs)
-
 
     def group_by_type(self):
         summary = Transaction.objects.values('user_email').annotate(

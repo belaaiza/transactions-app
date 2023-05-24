@@ -9,12 +9,13 @@ from transactions.tests.fixtures.transaction_payload import test_payload
 
 TRANSACTION_URL = reverse('transaction:transaction-list')
 
+
 class TransactionAPITests(APITestCase):
     factory = TransactionsFactory
 
     def setUp(self):
         super().setUp()
-        self.basic_payload =  {
+        self.basic_payload = {
             'reference': '000001',
             'date': '2020-01-03',
             'amount': '-51.13',
@@ -27,7 +28,7 @@ class TransactionAPITests(APITestCase):
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-       
+
         transaction = Transaction.objects.get(reference=res.data['reference'])
         self.assertEqual(transaction.reference, self.basic_payload['reference'])
         self.assertEqual(transaction.date.strftime('%Y-%m-%d'), self.basic_payload['date'])
@@ -42,7 +43,7 @@ class TransactionAPITests(APITestCase):
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(res.data['reference'][0]), 'transaction with this reference already exists.')
+        self.assertEqual(res.data['reference'][0], 'transaction with this reference already exists.')
 
     def test_create_multiple_invalid_transactions(self):
         self.basic_payload['type'] = 'inflow'
@@ -60,9 +61,9 @@ class TransactionAPITests(APITestCase):
 
         res = self.client.post(TRANSACTION_URL, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(res.data['amount'][0]), 'Amount should be a positive decimal for an inflow transaction.')
+        self.assertEqual(res.data['amount'][0], 'Amount should be a positive decimal for an inflow transaction.')
 
-    def test_create_multiple_transactions(self):
+    def test_create_multiple_valid_transactions(self):
         another_transaction = dict(self.basic_payload)
         another_transaction['reference'] = '000002'
 
@@ -73,7 +74,7 @@ class TransactionAPITests(APITestCase):
 
         res = self.client.post(TRANSACTION_URL, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-       
+
         transactions = Transaction.objects.all()
         self.assertEqual(len(transactions), len(payload))
 
@@ -83,7 +84,7 @@ class TransactionAPITests(APITestCase):
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(res.data['amount'][0]), 'Invalid amount format.')
+        self.assertEqual(res.data['amount'][0], 'Invalid amount format.')
 
     def test_negative_amount_with_inflow_type(self):
         self.basic_payload['type'] = 'inflow'
@@ -91,7 +92,7 @@ class TransactionAPITests(APITestCase):
 
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(res.data['amount'][0]), 'Amount should be a positive decimal for an inflow transaction.')
+        self.assertEqual(res.data['amount'][0], 'Amount should be a positive decimal for an inflow transaction.')
 
     def test_positive_amount_with_outflow_type(self):
         self.basic_payload['type'] = 'outflow'
@@ -99,7 +100,7 @@ class TransactionAPITests(APITestCase):
 
         res = self.client.post(TRANSACTION_URL, self.basic_payload)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(res.data['amount'][0]), 'Amount should be a negative decimal for an outflow transaction.')
+        self.assertEqual(res.data['amount'][0], 'Amount should be a negative decimal for an outflow transaction.')
 
     def test_list_transactions_grouped_by_type_and_user(self):
         for data in test_payload:
@@ -114,15 +115,20 @@ class TransactionAPITests(APITestCase):
                 'total_outflow': '-761.85'
             }
         ]
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, expected_data)
+
+    def test_list_transactions_with_invalid_groupe_by_param(self):
+        res = self.client.get(TRANSACTION_URL + '?group_by=random', vHTTP_ACCEPT='application/json')
+
+        self.assertEqual(res.status_code, status.HTTP_501_NOT_IMPLEMENTED)
 
     def test_list_user_transactions_grouped_by_category(self):
         for data in test_payload:
             self.factory.create(**data)
 
-        url = reverse('transaction:transaction-summary', kwargs={ 'user_email': 'janedoe@email.com' })
+        url = reverse('transaction:transaction-summary', kwargs={'user_email': 'janedoe@email.com'})
         res = self.client.get(url)
 
         expected_data = {

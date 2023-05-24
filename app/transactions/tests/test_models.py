@@ -3,10 +3,10 @@ Test for models.
 """
 
 from datetime import datetime
-from decimal import Decimal
 from django.test import TestCase
 
 from transactions import models
+
 
 class ModelTests(TestCase):
     """Test models."""

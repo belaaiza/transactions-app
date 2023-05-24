@@ -36,7 +36,7 @@ test_payload = [
         'date': '2020-01-10',
         'amount': 15072,
         'type': 'inflow',
-        'category': 'savings' ,
+        'category': 'savings',
         'user_email': 'janedoe@email.com'
     }
 ]
