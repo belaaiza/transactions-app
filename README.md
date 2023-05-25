@@ -12,7 +12,9 @@ To run the application locally, execute the following command inside the project
 ```bash
 docker-compose up
 ```
-The application will run on http://127.0.0.1:8000/
+The application will run on http://127.0.0.1:8000/.
+
+You can access http://127.0.0.1:8000/api/docs/ to browse through the available endpoints.
 
 ## Running the tests
 

@@ -8,6 +8,7 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Sum, Q
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -47,6 +48,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
         return Response(summary)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='group_by', 
+                description='List transactions grouped by type', 
+                required=False, 
+                type=str, 
+                enum=['type']
+            ),
+        ],
+    )
     def list(self, request, *args, **kwargs):
         """
         Action to list transactions. Supports the group_by=type query param, returning the
