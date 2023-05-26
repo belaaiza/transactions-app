@@ -26,8 +26,6 @@ docker-compose run --rm app sh -c "python manage.py test"
 
 ## Architectural Decision Records
 
-<br />
-
 ### **Transaction Table vs Transaction Table + User Table()**
 
 An important design decision was the domain modeling.
@@ -37,8 +35,6 @@ Most of the information manipulated in the service is transaction information, f
 Analyzing the domain in this way, it may make sense to separate the user information in another table, however, if we look at the `user_email` as the information of the transaction "maker", it can also be seen as information about the transaction.
 
 From this perspective, and considering that for the requirements there is no need to store other user information, using a single table (Transaction) can be a good option, since it would not be necessary to do a JOIN between the User and Transaction table to generate the summary grouped by type.
-
-<br />
 
 ### **bulk_create vs many=True + create**
 
@@ -54,7 +50,6 @@ Using `bulk_create()` the request took 7.6s.
 
 For this reason, the solution was optimized to use `bulk_create()`.
 
-<br />
 
 ### **Custom action vs list() for the grouped by type summary**
 
