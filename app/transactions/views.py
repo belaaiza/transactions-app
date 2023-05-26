@@ -81,6 +81,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return super(TransactionViewSet, self).list(request, *args, **kwargs)
 
     def group_by_type(self):
+        """Return the serializer with the transactions total inflow and total outflows per user."""
         summary = Transaction.objects.values('user_email').annotate(
                 total_inflow=Sum('amount', filter=Q(type='inflow')),
                 total_outflow=Sum('amount', filter=Q(type='outflow'))
